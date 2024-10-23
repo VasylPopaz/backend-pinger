@@ -1,28 +1,40 @@
+import express from "express";
 import fetch from "node-fetch";
+import morgan from "morgan";
 import "dotenv/config";
 
-const { BOOKS_URL, EVENTS_URL } = process.env;
-async function pingBackend() {
+const app = express();
+
+app.use(morgan("tiny"));
+
+const { BOOKS_URL, EVENTS_URL, PORT } = process.env;
+
+app.get("/ping", async (req, res) => {
+  const results = {};
+
   try {
     const booksResponse = await fetch(BOOKS_URL);
     const eventsResponse = await fetch(EVENTS_URL);
 
-    if (booksResponse.ok) {
-      console.log("Books is online.");
-    } else {
-      console.error("Books returned an error:", booksResponse.status);
-    }
+    results.books = {
+      online: booksResponse.ok,
+      status: booksResponse.status,
+    };
 
-    if (eventsResponse.ok) {
-      console.log("Events is online.");
-    } else {
-      console.error("Events returned an error:", eventsResponse.status);
-    }
+    results.events = {
+      online: eventsResponse.ok,
+      status: eventsResponse.status,
+    };
+
+    res.status(200).json(results);
   } catch (error) {
     console.error("Error pinging backend:", error.message);
+    res
+      .status(500)
+      .json({ message: "Error pinging backend", error: error.message });
   }
-}
+});
 
-setInterval(pingBackend, 30 * 60000);
-
-pingBackend();
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
