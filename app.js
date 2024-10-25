@@ -1,5 +1,4 @@
 import express from "express";
-import fetch from "node-fetch";
 import morgan from "morgan";
 import "dotenv/config";
 
